@@ -56,8 +56,12 @@ In the Vagrant file, replace the name, vendorid, and productid with the informat
 
     vb.customize ['usbfilter', 'add', '0', '--target', :id, '--name', 'USB JTAG/serial debug unit', '--vendorid', '0x303a', '--productid', '0x1001']
 
+### Issues
+My intent was to use this for programming my esp32c3 dev board over USB without the use of a serial to USB IC. This functionality works well directly on the host machine without the virtual machine in the way. There seems to be some sort of issue with USB timing with esptool when trying to program the board from within the vagrant virtual machine.
+
 ## Kudos and inspiration
 
 * pichenettes' [mutable-dev-environment](https://github.com/pichenettes/mutable-dev-environment)
+* larryli's [esp-idf-template pull request](https://github.com/espressif/esp-idf-template/pull/10/files)
 * Adafruit's [ARM Toolchain for Vagrant](https://github.com/adafruit/ARM-toolchain-vagrant)
 * Novation's [LaunchPad pro](https://github.com/dvhdr/launchpad-pro)

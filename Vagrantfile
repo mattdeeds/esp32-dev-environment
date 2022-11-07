@@ -44,6 +44,7 @@ Vagrant.configure("2") do |config|
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
   # config.vm.synced_folder "../data", "/vagrant_data"
+  config.vm.synced_folder ".", "/home/vagrant/host"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -62,6 +63,7 @@ Vagrant.configure("2") do |config|
    vb.customize ['modifyvm', :id, '--usb', 'on']
    vb.customize ['modifyvm', :id, '--usbehci', 'on']
    vb.customize ['usbfilter', 'add', '0', '--target', :id, '--name', 'Espressif USB JTAG/serial debug unit', '--vendorid', '0x303a', '--productid', '0x1001']
+   vb.customize ['modifyvm', :id, '--uartmode1', 'disconnected']
   end
 
   
@@ -74,12 +76,19 @@ Vagrant.configure("2") do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
-    apt-get install -y git wget flex bison gperf python3 python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
-    python --version
+    # apt-get upgrade -y
+    apt-get -qq install -y linux-image-extra-virtual
+    apt-get install -y git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+    # echo 'SUBSYSTEMS=="usb", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001", GROUP="users", MODE="0666"' >> /etc/udev/rules.d/60-programmers.rules
+    # echo 'KERNEL=="ttyUSB0", MODE="0666"' >> /etc/udev/rules.d/60-programmers.rules
+    # sudo udevadm control --reload-rules
+    # sudo udevadm trigger
+    python3 --version
     cd /home/vagrant
     mkdir -p esp
     cd esp
     git clone --recursive https://github.com/espressif/esp-idf.git
+    # git clone -b v4.4.2 --recursive https://github.com/espressif/esp-idf.git
     # chown -R vagrant:vagrant esp/
     sudo su - vagrant -c "cd /home/vagrant/esp/esp-idf && ./install.sh all && . /home/vagrant/esp/esp-idf/export.sh && exit"
     # cd /home/vagrant/esp/esp-idf
@@ -88,5 +97,8 @@ Vagrant.configure("2") do |config|
     # cd /home/vagrant/
     chown -R vagrant:vagrant /home/vagrant/esp/
     echo "alias get_idf='. /home/vagrant/esp/esp-idf/export.sh'" >> /home/vagrant/.bashrc
+    adduser vagrant dialout
+    adduser root dialout
+    usermod -a -G dialout vagrant
   SHELL
 end
